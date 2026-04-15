@@ -1,0 +1,41 @@
+## .NET / Visual Studio
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.cache
+*.nupkg.
+
+## Rider / JetBrains
+.idea/
+*.sln.iml
+
+## VS Code
+.vscode/settings.json
+.vscode/launch.json
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Entity Framework Migrations
+*.db
+*.db-shm
+*.db-wal
+
+## Secrets
+appsettings.*.json
+*.pfx
+*.p12
+.env
+
+## Logs
+*.log
+logs/
+
+## Test coverage
+coverage/
+*.coverage
+*.coveragexml
