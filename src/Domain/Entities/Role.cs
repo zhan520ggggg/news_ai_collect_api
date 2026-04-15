@@ -31,4 +31,9 @@ public class Role : BaseEntity
     /// 该角色关联的用户
     /// </summary>
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+    /// <summary>
+    /// 该角色关联的菜单
+    /// </summary>
+    public ICollection<RoleMenu> RoleMenus { get; set; } = new List<RoleMenu>();
 }

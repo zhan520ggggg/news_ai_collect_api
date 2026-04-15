@@ -29,4 +29,10 @@ public class UserRepository : Repository<User>, IUserRepository
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.UserName == userName, ct);
+
+    public async Task<List<string>> GetUserRoleNamesAsync(Guid userId, CancellationToken ct = default) =>
+        await _dbSet
+            .Where(u => u.Id == userId)
+            .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
+            .ToListAsync(ct);
 }

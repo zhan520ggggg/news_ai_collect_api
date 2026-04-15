@@ -1,6 +1,5 @@
 using System.Text;
 using Application.Extensions;
-using Application.Interfaces;
 using Common.Models;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -83,13 +82,10 @@ builder.Services.AddCustomSwagger();
 // FluentValidation（Web 层集成：模型绑定自动触发验证）
 builder.Services.AddFluentValidationAutoValidation();
 
-// JWT Token 提供者
-builder.Services.AddSingleton<IJwtTokenProvider, JwtTokenProvider>();
-
 // 应用层：AutoMapper + FluentValidation 扫描 + 服务自动注册
 builder.Services.AddApplication();
 
-// 基础设施层：数据库 + 仓储
+// 基础设施层：数据库 + 仓储 + JWT Token 提供者
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // 配置选项

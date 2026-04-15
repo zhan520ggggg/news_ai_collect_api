@@ -31,4 +31,9 @@ public interface IUserRepository : IRepository<User>
     /// 根据用户名查找（含角色信息）
     /// </summary>
     Task<User?> FindByUserNameWithRolesAsync(string userName, CancellationToken ct = default);
+
+    /// <summary>
+    /// 获取用户的所有角色名称
+    /// </summary>
+    Task<List<string>> GetUserRoleNamesAsync(Guid userId, CancellationToken ct = default);
 }

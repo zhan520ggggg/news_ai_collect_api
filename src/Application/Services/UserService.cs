@@ -11,15 +11,29 @@ namespace Application.Services;
 /// </summary>
 public class UserService : IUserService
 {
+    /**
+    Application 层是你的业务核心，它只应该关心 “我要做什么”，不应该关心 “用什么技术做”。
+    直接依赖 JWT 包 = 业务核心被技术工具绑架了。
+
+    它只关心业务规则，不关心底层技术（不关心是 JWT、Session、还是 OAuth）。
+
+    高层策略（业务）不应该依赖低层实现（技术工具）。
+    Application 层是高层  JWT 是底层技术工具  Application 层 = 业务核心（不能被技术污染）
+
+    JWT = 外部技术工具（放在基础层）
+    */
+    //Application 层不应该依赖 JWT 包。需要用接口解耦。IJwtTokenProvider的实现在webapi,通过服务注册进来  
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly IJwtTokenProvider _jwtTokenProvider;
+    private readonly IMenuService _menuService;
 
-    public UserService(IUserRepository userRepository, IMapper mapper, IJwtTokenProvider jwtTokenProvider)
+    public UserService(IUserRepository userRepository, IMapper mapper, IJwtTokenProvider jwtTokenProvider, IMenuService menuService)
     {
         _userRepository = userRepository;
         _mapper = mapper;
         _jwtTokenProvider = jwtTokenProvider;
+        _menuService = menuService;
     }
 
     public async Task<UserResponseDto> CreateUserAsync(CreateUserDto dto, CancellationToken ct = default)
@@ -122,11 +136,15 @@ public class UserService : IUserService
         // 生成 JWT Token
         var (token, expiresAt) = _jwtTokenProvider.GenerateToken(user.Id, user.UserName, roles);
 
+        // 获取用户可见菜单树
+        var menus = await _menuService.GetUserMenusAsync(user.Id, _userRepository, ct);
+
         return new LoginResponseDto
         {
             Token = token,
             ExpiresAt = expiresAt,
-            User = _mapper.Map<UserResponseDto>(user)
+            User = _mapper.Map<UserResponseDto>(user),
+            Menus = menus
         };
     }
 
@@ -149,6 +167,11 @@ public class UserService : IUserService
 
         var created = await _userRepository.AddAsync(user, ct);
         return _mapper.Map<UserResponseDto>(created);
+    }
+
+    public async Task<List<MenuTreeDto>> GetUserMenusAsync(Guid userId, CancellationToken ct = default)
+    {
+        return await _menuService.GetUserMenusAsync(userId, _userRepository, ct);
     }
 
     private static string HashPassword(string password) =>

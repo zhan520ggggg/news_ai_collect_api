@@ -2,30 +2,36 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Application.Interfaces;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace WebApi.Config;
+namespace Infrastructure.Jwt;
 
 /// <summary>
 /// JWT Token 提供者实现
 /// </summary>
 public class JwtTokenProvider : IJwtTokenProvider
 {
-    private readonly JwtSettings _settings;
+    private readonly IConfiguration _configuration;
 
-    public JwtTokenProvider(IOptions<JwtSettings> settings)
+    public JwtTokenProvider(IConfiguration configuration)
     {
-        _settings = settings.Value;
+        _configuration = configuration;
     }
 
     public (string token, DateTime expiresAt) GenerateToken(
         Guid userId, string userName, IEnumerable<string> roles)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
+        var jwtSettings = _configuration.GetSection("JwtSettings");
+        var secret = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");
+        var issuer = jwtSettings["Issuer"] ?? "CleanArchitectureApi";
+        var audience = jwtSettings["Audience"] ?? "CleanArchitectureApi";
+        var expirationMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "120");
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpirationMinutes);
+        var expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
 
         var claims = new List<Claim>
         {
@@ -43,8 +49,8 @@ public class JwtTokenProvider : IJwtTokenProvider
         {
             Subject = new ClaimsIdentity(claims),
             Expires = expiresAt,
-            Issuer = _settings.Issuer,
-            Audience = _settings.Audience,
+            Issuer = issuer,
+            Audience = audience,
             SigningCredentials = credentials
         };
 

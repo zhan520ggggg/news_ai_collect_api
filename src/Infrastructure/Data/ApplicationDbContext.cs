@@ -16,6 +16,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
+    public DbSet<Menu> Menus => Set<Menu>();
+    public DbSet<RoleMenu> RoleMenus => Set<RoleMenu>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,6 +73,42 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Role)
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(e => e.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        // Menu configuration
+        modelBuilder.Entity<Menu>(entity =>
+        {
+            entity.ToTable("Menus");
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.Property(e => e.Code).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Icon).HasMaxLength(50);
+            entity.Property(e => e.Route).HasMaxLength(200);
+            entity.HasQueryFilter(e => !e.IsDeleted);
+
+            entity.HasOne(m => m.Parent)
+                .WithMany(m => m.Children)
+                .HasForeignKey(m => m.ParentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // RoleMenu configuration
+        modelBuilder.Entity<RoleMenu>(entity =>
+        {
+            entity.ToTable("RoleMenus");
+            entity.HasIndex(e => new { e.RoleId, e.MenuId }).IsUnique();
+
+            entity.HasOne(e => e.Role)
+                .WithMany(r => r.RoleMenus)
+                .HasForeignKey(e => e.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Menu)
+                .WithMany(m => m.RoleMenus)
+                .HasForeignKey(e => e.MenuId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasQueryFilter(e => !e.IsDeleted);

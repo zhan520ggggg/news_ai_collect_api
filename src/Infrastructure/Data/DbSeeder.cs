@@ -60,5 +60,65 @@ public static class DbSeeder
                 await ctx.SaveChangesAsync();
             }
         }
+
+        // 种子菜单（仅当菜单表为空时）
+        if (!await ctx.Menus.AnyAsync())
+        {
+            var modules = new List<Menu>
+            {
+                // 4 个顶级模块 (type=0)
+                new Menu { Code = MenuCodes.Collection, Name = "热点采集模块", Icon = "Collection", Route = "/collection", Type = 0, Sort = 10 },
+                new Menu { Code = MenuCodes.Hotspot, Name = "热点管理模块", Icon = "Hotspot", Route = "/hotspot", Type = 0, Sort = 20 },
+                new Menu { Code = MenuCodes.DataAnalysis, Name = "数据分析展示模块", Icon = "DataAnalysis", Route = "/data-analysis", Type = 0, Sort = 30 },
+                new Menu { Code = MenuCodes.System, Name = "系统管理模块", Icon = "Settings", Route = "/system", Type = 0, Sort = 40 },
+            };
+            await ctx.Menus.AddRangeAsync(modules);
+            await ctx.SaveChangesAsync();
+
+            var parentId = modules.ToDictionary(m => m.Code, m => m.Id);
+            var subMenus = new List<Menu>
+            {
+                // 热点采集模块子菜单 (type=1)
+                new Menu { Code = MenuCodes.CollectionConfig, Name = "采集配置", ParentId = parentId[MenuCodes.Collection], Route = "/collection/config", Type = 1, Sort = 10 },
+                new Menu { Code = MenuCodes.CollectionMonitor, Name = "采集执行与监控", ParentId = parentId[MenuCodes.Collection], Route = "/collection/monitor", Type = 1, Sort = 20 },
+                new Menu { Code = MenuCodes.CollectionData, Name = "采集数据处理", ParentId = parentId[MenuCodes.Collection], Route = "/collection/data", Type = 1, Sort = 30 },
+
+                // 热点管理模块子菜单 (type=1)
+                new Menu { Code = MenuCodes.HotspotList, Name = "热点列表管理", ParentId = parentId[MenuCodes.Hotspot], Route = "/hotspot/list", Type = 1, Sort = 10 },
+                new Menu { Code = MenuCodes.HotspotEdit, Name = "热点编辑", ParentId = parentId[MenuCodes.Hotspot], Route = "/hotspot/edit", Type = 1, Sort = 20 },
+                new Menu { Code = MenuCodes.HotspotCategoryTag, Name = "分类与标签管理", ParentId = parentId[MenuCodes.Hotspot], Route = "/hotspot/category-tag", Type = 1, Sort = 30 },
+                new Menu { Code = MenuCodes.HotspotReview, Name = "热点审核流程", ParentId = parentId[MenuCodes.Hotspot], Route = "/hotspot/review", Type = 1, Sort = 40 },
+                new Menu { Code = MenuCodes.HotspotPublish, Name = "热点发布与下架", ParentId = parentId[MenuCodes.Hotspot], Route = "/hotspot/publish", Type = 1, Sort = 50 },
+                new Menu { Code = MenuCodes.HotspotArchive, Name = "热点归档", ParentId = parentId[MenuCodes.Hotspot], Route = "/hotspot/archive", Type = 1, Sort = 60 },
+
+                // 数据分析展示模块子菜单 (type=1)
+                new Menu { Code = MenuCodes.DataDashboard, Name = "核心数据仪表盘", ParentId = parentId[MenuCodes.DataAnalysis], Route = "/data-analysis/dashboard", Type = 1, Sort = 10 },
+                new Menu { Code = MenuCodes.DataTrend, Name = "热点热度分析", ParentId = parentId[MenuCodes.DataAnalysis], Route = "/data-analysis/trend", Type = 1, Sort = 20 },
+                new Menu { Code = MenuCodes.DataCollection, Name = "采集数据分析", ParentId = parentId[MenuCodes.DataAnalysis], Route = "/data-analysis/collection", Type = 1, Sort = 30 },
+                new Menu { Code = MenuCodes.DataOperations, Name = "运营数据分析", ParentId = parentId[MenuCodes.DataAnalysis], Route = "/data-analysis/operations", Type = 1, Sort = 40 },
+
+                // 系统管理模块子菜单 (type=1)
+                new Menu { Code = MenuCodes.SystemRole, Name = "角色与权限管理", ParentId = parentId[MenuCodes.System], Route = "/system/role", Type = 1, Sort = 10 },
+                new Menu { Code = MenuCodes.SystemConfig, Name = "系统参数配置", ParentId = parentId[MenuCodes.System], Route = "/system/config", Type = 1, Sort = 20 },
+                new Menu { Code = MenuCodes.SystemBackup, Name = "数据备份与恢复", ParentId = parentId[MenuCodes.System], Route = "/system/backup", Type = 1, Sort = 30 },
+                new Menu { Code = MenuCodes.SystemNotification, Name = "息通知管理", ParentId = parentId[MenuCodes.System], Route = "/system/notification", Type = 1, Sort = 40 },
+            };
+            await ctx.Menus.AddRangeAsync(subMenus);
+            await ctx.SaveChangesAsync();
+
+            // 将所有菜单关联到 SuperAdmin 角色
+            var superAdminRole = await ctx.Roles.FirstOrDefaultAsync(r => r.Name == RoleNames.SuperAdmin);
+            if (superAdminRole != null)
+            {
+                var allMenus = await ctx.Menus.ToListAsync();
+                var roleMenus = allMenus.Select(m => new RoleMenu
+                {
+                    RoleId = superAdminRole.Id,
+                    MenuId = m.Id
+                }).ToList();
+                await ctx.RoleMenus.AddRangeAsync(roleMenus);
+                await ctx.SaveChangesAsync();
+            }
+        }
     }
 }
