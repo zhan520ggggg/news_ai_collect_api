@@ -13,8 +13,10 @@
 *.sln.iml
 
 ## VS Code
-.vscode/settings.json
-.vscode/launch.json
+.vscode/
+
+## Claude Code
+.claude/
 
 ## OS
 .DS_Store
