@@ -144,7 +144,8 @@ public class UserService : IUserService
             Token = token,
             ExpiresAt = expiresAt,
             User = _mapper.Map<UserResponseDto>(user),
-            Menus = menus
+            Menus = menus,
+            Roles = roles
         };
     }
 

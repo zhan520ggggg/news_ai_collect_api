@@ -46,6 +46,11 @@ public class LoginResponseDto
     public DateTime ExpiresAt { get; set; }
     public UserResponseDto User { get; set; } = null!;
     public List<MenuTreeDto> Menus { get; set; } = new();
+
+    /// <summary>
+    /// 用户角色列表
+    /// </summary>
+    public List<string> Roles { get; set; } = new();
 }
 
 /// <summary>

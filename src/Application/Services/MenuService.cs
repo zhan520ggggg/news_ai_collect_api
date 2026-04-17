@@ -1,4 +1,5 @@
 using AutoMapper;
+using Domain.Constants;
 using Domain.Interfaces;
 using Application.DTOs;
 using Application.Interfaces;
@@ -92,6 +93,10 @@ public class MenuService : IMenuService
 
         // 获取完整菜单树
         var allMenus = await _menuRepository.GetMenuTreeAsync(ct);
+
+        // 如果是超级管理员，直接返回所有菜单
+        if (roleNames.Contains(RoleNames.SuperAdmin))
+            return BuildMenuTree(allMenus, null);
 
         // 获取用户角色关联的菜单 Id
         var menuIds = allMenus
