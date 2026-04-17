@@ -22,15 +22,21 @@ public class UserService : IUserService
 
     JWT = 外部技术工具（放在基础层）
     */
-    //Application 层不应该依赖 JWT 包。需要用接口解耦。IJwtTokenProvider的实现在webapi,通过服务注册进来  
+    //Application 层不应该依赖 JWT 包。需要用接口解耦。IJwtTokenProvider的实现在webapi,通过服务注册进来
     private readonly IUserRepository _userRepository;
+    private readonly IRepository<Domain.Entities.Role> _roleRepository;
+    private readonly IRepository<Domain.Entities.UserRole> _userRoleRepository;
     private readonly IMapper _mapper;
     private readonly IJwtTokenProvider _jwtTokenProvider;
     private readonly IMenuService _menuService;
 
-    public UserService(IUserRepository userRepository, IMapper mapper, IJwtTokenProvider jwtTokenProvider, IMenuService menuService)
+    public UserService(IUserRepository userRepository, IRepository<Domain.Entities.Role> roleRepository,
+        IRepository<Domain.Entities.UserRole> userRoleRepository, IMapper mapper,
+        IJwtTokenProvider jwtTokenProvider, IMenuService menuService)
     {
         _userRepository = userRepository;
+        _roleRepository = roleRepository;
+        _userRoleRepository = userRoleRepository;
         _mapper = mapper;
         _jwtTokenProvider = jwtTokenProvider;
         _menuService = menuService;
@@ -48,6 +54,27 @@ public class UserService : IUserService
         user.PasswordHash = HashPassword(dto.Password);
 
         var created = await _userRepository.AddAsync(user, ct);
+
+        // 处理角色分配
+        if (dto.RoleNames != null && dto.RoleNames.Any())
+        {
+            foreach (var roleName in dto.RoleNames)
+            {
+                var role = await _roleRepository.FirstOrDefaultAsync(
+                    r => r.Name == roleName, ct);
+
+                if (role != null)
+                {
+                    var userRole = new Domain.Entities.UserRole
+                    {
+                        UserId = created.Id,
+                        RoleId = role.Id
+                    };
+                    await _userRoleRepository.AddAsync(userRole, ct);
+                }
+            }
+        }
+
         return _mapper.Map<UserResponseDto>(created);
     }
 
@@ -108,6 +135,36 @@ public class UserService : IUserService
         user.UpdatedAt = DateTime.UtcNow;
 
         await _userRepository.UpdateAsync(user, ct);
+
+        // 处理角色更新
+        if (dto.RoleNames != null)
+        {
+            // 删除现有角色
+            var existingRoles = await _userRoleRepository.FindAsync(
+                ur => ur.UserId == id, ct);
+            foreach (var existingRole in existingRoles)
+            {
+                await _userRoleRepository.DeleteAsync(existingRole, ct);
+            }
+
+            // 添加新角色
+            foreach (var roleName in dto.RoleNames)
+            {
+                var role = await _roleRepository.FirstOrDefaultAsync(
+                    r => r.Name == roleName, ct);
+
+                if (role != null)
+                {
+                    var userRole = new Domain.Entities.UserRole
+                    {
+                        UserId = id,
+                        RoleId = role.Id
+                    };
+                    await _userRoleRepository.AddAsync(userRole, ct);
+                }
+            }
+        }
+
         return _mapper.Map<UserResponseDto>(user);
     }
 
@@ -167,6 +224,27 @@ public class UserService : IUserService
         };
 
         var created = await _userRepository.AddAsync(user, ct);
+
+        // 处理角色分配
+        if (dto.RoleNames != null && dto.RoleNames.Any())
+        {
+            foreach (var roleName in dto.RoleNames)
+            {
+                var role = await _roleRepository.FirstOrDefaultAsync(
+                    r => r.Name == roleName, ct);
+
+                if (role != null)
+                {
+                    var userRole = new Domain.Entities.UserRole
+                    {
+                        UserId = created.Id,
+                        RoleId = role.Id
+                    };
+                    await _userRoleRepository.AddAsync(userRole, ct);
+                }
+            }
+        }
+
         return _mapper.Map<UserResponseDto>(created);
     }
 

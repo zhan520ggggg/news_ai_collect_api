@@ -31,10 +31,9 @@ public static class MenuCodes
     public const string DataOperations = "data_operations";
 
     // 系统管理模块
-    public const string SystemMenus= "system_menus";
+    public const string SystemMenus = "system_menus";
     public const string SystemRole = "system_role";
     public const string SystemConfig = "system_config";
     public const string SystemBackup = "system_backup";
-
     public const string SystemNotification = "system_notification";
 }

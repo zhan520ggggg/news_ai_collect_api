@@ -22,8 +22,12 @@ public class ProductsController : ControllerBase
     }
 
     /// <summary>
-    /// 创建产品
+    /// 创建新产品
     /// </summary>
+    /// <param name="dto">产品信息，包含名称、描述、价格等</param>
+    /// <param name="ct">取消令牌</param>
+    /// <returns>创建的产品信息</returns>
+    /// <response code="200">创建成功</response>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<ProductResponseDto>), 200)]
     public async Task<IActionResult> CreateProduct(
@@ -34,8 +38,13 @@ public class ProductsController : ControllerBase
     }
 
     /// <summary>
-    /// 根据 ID 获取产品
+    /// 根据 ID 获取产品信息
     /// </summary>
+    /// <param name="id">产品 ID</param>
+    /// <param name="ct">取消令牌</param>
+    /// <returns>产品信息</returns>
+    /// <response code="200">获取成功</</response>
+    /// <response code="404">产品不存在</response>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<ProductResponseDto>), 200)]
     [ProducesResponseType(404)]
@@ -46,8 +55,11 @@ public class ProductsController : ControllerBase
     }
 
     /// <summary>
-    /// 获取所有产品
+    /// 获取所有产品列表
     /// </summary>
+    /// <param name="ct">取消令牌</param>
+    /// <returns>所有产品列表</returns>
+    /// <response code="200">获取成功</response>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<ProductResponseDto>>), 200)]
     public async Task<IActionResult> GetAllProducts(CancellationToken ct)
@@ -57,8 +69,12 @@ public class ProductsController : ControllerBase
     }
 
     /// <summary>
-    /// 分页获取产品
+    /// 分页获取产品列表
     /// </summary>
+    /// <param name="request">分页参数，包含页码和每页数量</param>
+    /// <param name="ct">取消令牌</param>
+    /// <returns>分页产品数据</returns>
+    /// <response code="200">获取成功</response>
     [HttpGet("paged")]
     [ProducesResponseType(typeof(ApiResponse<PagedResponse<ProductResponseDto>>), 200)]
     public async Task<IActionResult> GetProductsPaged(
@@ -69,8 +85,14 @@ public class ProductsController : ControllerBase
     }
 
     /// <summary>
-    /// 更新产品
+    /// 更新产品信息
     /// </summary>
+    /// <param name="id">产品 ID</param>
+    /// <param name="dto">产品更新信息</param>
+    /// <param name="ct">取消令牌</param>
+    /// <returns>更新后的产品信息</returns>
+    /// <response code="200">更新成功</response>
+    /// <response code="404">产品不存在</response>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<ProductResponseDto>), 200)]
     [ProducesResponseType(404)]
@@ -82,8 +104,13 @@ public class ProductsController : ControllerBase
     }
 
     /// <summary>
-    /// 删除产品
+    /// 删除指定产品（软删除）
     /// </summary>
+    /// <param name="id">产品 ID</param>
+    /// <param name="ct">取消令牌</param>
+    /// <returns>删除成功消息</returns>
+    /// <response code="200">删除成功</response>
+    /// <response code="404">产品不存在</response>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(200)]
     [ProducesResponseType(404)]

@@ -10,6 +10,10 @@ public class CreateUserDto
     public string? Phone { get; set; }
     public string Password { get; set; } = string.Empty;
     public string? DisplayName { get; set; }
+    /// <summary>
+    /// 角色名称列表（如：["User", "Admin"]）
+    /// </summary>
+    public List<string> RoleNames { get; set; } = new();
 }
 
 /// <summary>
@@ -21,6 +25,10 @@ public class UpdateUserDto
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? DisplayName { get; set; }
+    /// <summary>
+    /// 角色名称列表（如：["User", "Admin"]）
+    /// </summary>
+    public List<string>? RoleNames { get; set; }
 }
 
 /// <summary>
@@ -36,4 +44,5 @@ public class UserResponseDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public List<string> Roles { get; set; } = new();
 }

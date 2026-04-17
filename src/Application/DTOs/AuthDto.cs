@@ -35,6 +35,11 @@ public class RegisterDto
 
     [MaxLength(100)]
     public string? DisplayName { get; set; }
+
+    /// <summary>
+    /// 角色名称列表（如：["User", "Admin"]）
+    /// </summary>
+    public List<string> RoleNames { get; set; } = new();
 }
 
 /// <summary>

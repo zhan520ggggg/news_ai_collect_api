@@ -98,7 +98,7 @@ public static class DbSeeder
                 new Menu { Code = MenuCodes.DataOperations, Name = "运营数据分析", ParentId = parentId[MenuCodes.DataAnalysis], Route = "/data-analysis/operations", Type = 1, Sort = 40 },
 
                 // 系统管理模块子菜单 (type=1)
-                new Menu { Code = MenuCodes.SystemRole, Name = "菜单管理", ParentId = parentId[MenuCodes.System], Route = "/system/menus", Type = 1, Sort = 10 },
+                new Menu { Code = MenuCodes.SystemMenus, Name = "菜单管理", ParentId = parentId[MenuCodes.System], Route = "/system/menus", Type = 1, Sort = 10 },
                 new Menu { Code = MenuCodes.SystemRole, Name = "角色与权限管理", ParentId = parentId[MenuCodes.System], Route = "/system/role", Type = 1, Sort = 10 },
                 new Menu { Code = MenuCodes.SystemConfig, Name = "系统参数配置", ParentId = parentId[MenuCodes.System], Route = "/system/config", Type = 1, Sort = 20 },
                 new Menu { Code = MenuCodes.SystemBackup, Name = "数据备份与恢复", ParentId = parentId[MenuCodes.System], Route = "/system/backup", Type = 1, Sort = 30 },

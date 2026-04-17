@@ -22,4 +22,19 @@ public interface IRoleService
     /// </summary>
     Task<RoleMenuResponseDto> AssignMenusToRoleAsync(
         Guid roleId, AssignMenusDto dto, CancellationToken ct = default);
+
+    /// <summary>
+    /// 创建角色
+    /// </summary>
+    Task<RoleResponseDto> CreateRoleAsync(CreateRoleDto dto, CancellationToken ct = default);
+
+    /// <summary>
+    /// 更新角色
+    /// </summary>
+    Task<RoleResponseDto> UpdateRoleAsync(Guid id, UpdateRoleDto dto, CancellationToken ct = default);
+
+    /// <summary>
+    /// 删除角色
+    /// </summary>
+    Task DeleteRoleAsync(Guid id, CancellationToken ct = default);
 }

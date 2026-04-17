@@ -99,4 +99,56 @@ public class RoleService : IRoleService
             MenuIds = dto.MenuIds
         };
     }
+
+    public async Task<RoleResponseDto> CreateRoleAsync(CreateRoleDto dto, CancellationToken ct = default)
+    {
+        var role = new Role
+        {
+            Name = dto.Name,
+            DisplayName = dto.DisplayName,
+            Description = dto.Description
+        };
+
+        await _roleRepository.AddAsync(role, ct);
+        return MapToDto(role);
+    }
+
+    public async Task<RoleResponseDto> UpdateRoleAsync(Guid id, UpdateRoleDto dto, CancellationToken ct = default)
+    {
+        var role = await _roleRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException(nameof(Role), id);
+
+        if (dto.Name != null)
+            role.Name = dto.Name;
+
+        if (dto.DisplayName != null)
+            role.DisplayName = dto.DisplayName;
+
+        if (dto.Description != null)
+            role.Description = dto.Description;
+
+        await _roleRepository.UpdateAsync(role, ct);
+        return MapToDto(role);
+    }
+
+    public async Task DeleteRoleAsync(Guid id, CancellationToken ct = default)
+    {
+        var role = await _roleRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException(nameof(Role), id);
+
+        await _roleRepository.DeleteAsync(role, ct);
+    }
+
+    private static RoleResponseDto MapToDto(Role role)
+    {
+        return new RoleResponseDto
+        {
+            Id = role.Id,
+            Name = role.Name,
+            DisplayName = role.DisplayName,
+            Description = role.Description,
+            CreatedAt = role.CreatedAt,
+            UpdatedAt = role.UpdatedAt
+        };
+    }
 }
