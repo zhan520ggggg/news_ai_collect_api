@@ -12,17 +12,17 @@ namespace Application.Services;
 public class UserService : IUserService
 {
     /**
-    Application 层是你的业务核心，它只应该关心 “我要做什么”，不应该关心 “用什么技术做”。
+    Application 层是你的业务核心，它只应该关心 "我要做什么"，不应该关心 "用什么技术做"。
     直接依赖 JWT 包 = 业务核心被技术工具绑架了。
 
     它只关心业务规则，不关心底层技术（不关心是 JWT、Session、还是 OAuth）。
 
-    高层策略（业务）不应该依赖低层实现（技术工具）。
-    Application 层是高层  JWT 是底层技术工具  Application 层 = 业务核心（不能被技术污染）
+    高层策略（业务）应该不应依赖低层实现（技术工具）。
+    Application 层是高层  JWT 是底层技术工具  Application 层 = 业务核心（不能被（技术污染）
 
     JWT = 外部技术工具（放在基础层）
     */
-    //Application 层不应该依赖 JWT 包。需要用接口解耦。IJwtTokenProvider的实现在webapi,通过服务注册进来
+    //Application 层不应该依赖 JWT 包。需要用接口解耦。IJwtTokenProvider的实现在webapi，通过服务注册进来
     private readonly IUserRepository _userRepository;
     private readonly IRepository<Domain.Entities.Role> _roleRepository;
     private readonly IRepository<Domain.Entities.UserRole> _userRoleRepository;
@@ -54,27 +54,20 @@ public class UserService : IUserService
         user.PasswordHash = HashPassword(dto.Password);
 
         var created = await _userRepository.AddAsync(user, ct);
-
         // 处理角色分配
-        if (dto.RoleNames != null && dto.RoleNames.Any())
+        if (dto.RoleIds != null && dto.RoleIds.Any())
         {
-            foreach (var roleName in dto.RoleNames)
-            {
-                var role = await _roleRepository.FirstOrDefaultAsync(
-                    r => r.Name == roleName, ct);
-
-                if (role != null)
+            var userRoles = dto.RoleIds
+                .Where(roleIdStr => Guid.TryParse(roleIdStr, out _))
+                .Select(roleIdStr => new Domain.Entities.UserRole
                 {
-                    var userRole = new Domain.Entities.UserRole
-                    {
-                        UserId = created.Id,
-                        RoleId = role.Id
-                    };
-                    await _userRoleRepository.AddAsync(userRole, ct);
-                }
-            }
-        }
+                    UserId = created.Id,
+                    RoleId = Guid.Parse(roleIdStr)
+                })
+                .ToList();
 
+            await _userRoleRepository.AddRangeAsync(userRoles, ct);
+        }
         return _mapper.Map<UserResponseDto>(created);
     }
 
@@ -100,9 +93,19 @@ public class UserService : IUserService
 
         var total = await _userRepository.CountAsync(ct: ct);
 
+        var userIds = items.Select(u => u.Id);
+        var rolesMap = await _userRepository.GetUserRolesMapAsync(userIds, ct);
+
+        var dtos = _mapper.Map<IReadOnlyList<UserResponseDto>>(items);
+        foreach (var dto in dtos)
+        {
+            if (rolesMap.TryGetValue(dto.Id, out var roles))
+                dto.Roles = roles;
+        }
+
         return new PagedResponse<UserResponseDto>
         {
-            Items = _mapper.Map<IReadOnlyList<UserResponseDto>>(items),
+            Items = dtos,
             TotalCount = total,
             PageNumber = request.PageNumber,
             PageSize = request.PageSize
@@ -137,31 +140,33 @@ public class UserService : IUserService
         await _userRepository.UpdateAsync(user, ct);
 
         // 处理角色更新
-        if (dto.RoleNames != null)
+        if (dto.RoleIds != null)
         {
-            // 删除现有角色
-            var existingRoles = await _userRoleRepository.FindAsync(
-                ur => ur.UserId == id, ct);
-            foreach (var existingRole in existingRoles)
+            await using var transaction = await _userRoleRepository.BeginTransactionAsync(ct);
+            try
             {
-                await _userRoleRepository.DeleteAsync(existingRole, ct);
-            }
-
-            // 添加新角色
-            foreach (var roleName in dto.RoleNames)
-            {
-                var role = await _roleRepository.FirstOrDefaultAsync(
-                    r => r.Name == roleName, ct);
-
-                if (role != null)
+                var count = await _userRoleRepository.DeleteManyAsync(ur => ur.UserId == id, ct);
+                Console.WriteLine($"删除数量{count}");
+                if (dto.RoleIds.Any())
                 {
-                    var userRole = new Domain.Entities.UserRole
-                    {
-                        UserId = id,
-                        RoleId = role.Id
-                    };
-                    await _userRoleRepository.AddAsync(userRole, ct);
+                    var userRoles = dto.RoleIds
+                        .Where(roleIdStr => Guid.TryParse(roleIdStr, out _))
+                        .Select(roleIdStr => new Domain.Entities.UserRole
+                        {
+                            UserId = id,
+                            RoleId = Guid.Parse(roleIdStr)
+                        })
+                        .ToList();
+
+                    await _userRoleRepository.AddRangeAsync(userRoles, ct);
                 }
+
+                await transaction.CommitAsync(ct);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(ct);
+                throw;
             }
         }
 
@@ -188,7 +193,7 @@ public class UserService : IUserService
             throw new BusinessException(403, "账号已被禁用");
 
         // 提取角色列表
-        var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
+        var roles = user.UserRoles.Select(ur => ur.RoleId);
 
         // 生成 JWT Token
         var (token, expiresAt) = _jwtTokenProvider.GenerateToken(user.Id, user.UserName, roles);
@@ -202,7 +207,7 @@ public class UserService : IUserService
             ExpiresAt = expiresAt,
             User = _mapper.Map<UserResponseDto>(user),
             Menus = menus,
-            Roles = roles
+            Roles= roles
         };
     }
 
@@ -226,31 +231,21 @@ public class UserService : IUserService
         var created = await _userRepository.AddAsync(user, ct);
 
         // 处理角色分配
-        if (dto.RoleNames != null && dto.RoleNames.Any())
+        if (dto.RoleIds != null && dto.RoleIds.Any())
         {
-            foreach (var roleName in dto.RoleNames)
-            {
-                var role = await _roleRepository.FirstOrDefaultAsync(
-                    r => r.Name == roleName, ct);
-
-                if (role != null)
+            var userRoles = dto.RoleIds
+                .Where(roleIdStr => Guid.TryParse(roleIdStr, out _))
+                .Select(roleIdStr => new Domain.Entities.UserRole
                 {
-                    var userRole = new Domain.Entities.UserRole
-                    {
-                        UserId = created.Id,
-                        RoleId = role.Id
-                    };
-                    await _userRoleRepository.AddAsync(userRole, ct);
-                }
-            }
+                    UserId = created.Id,
+                    RoleId = Guid.Parse(roleIdStr)
+                })
+                .ToList();
+
+            await _userRoleRepository.AddRangeAsync(userRoles, ct);
         }
 
         return _mapper.Map<UserResponseDto>(created);
-    }
-
-    public async Task<List<MenuTreeDto>> GetUserMenusAsync(Guid userId, CancellationToken ct = default)
-    {
-        return await _menuService.GetUserMenusAsync(userId, _userRepository, ct);
     }
 
     private static string HashPassword(string password) =>

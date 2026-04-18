@@ -20,14 +20,5 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));
 
         CreateMap<Domain.Entities.User, UserResponseDto>();
-
-        // Product mappings
-        CreateMap<CreateProductDto, Domain.Entities.Product>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
-
-        CreateMap<Domain.Entities.Product, ProductResponseDto>();
     }
 }

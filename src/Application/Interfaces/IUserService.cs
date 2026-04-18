@@ -50,8 +50,4 @@ public interface IUserService
     /// </summary>
     Task<UserResponseDto> RegisterAsync(RegisterDto dto, CancellationToken ct = default);
 
-    /// <summary>
-    /// 获取用户可见菜单树
-    /// </summary>
-    Task<List<MenuTreeDto>> GetUserMenusAsync(Guid userId, CancellationToken ct = default);
 }

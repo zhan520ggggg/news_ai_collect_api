@@ -37,9 +37,9 @@ public class RegisterDto
     public string? DisplayName { get; set; }
 
     /// <summary>
-    /// 角色名称列表（如：["User", "Admin"]）
+    /// 角色 ID 列表（如：["c16aecc9-f155-47da-92ff-2835d9d30c74"]）
     /// </summary>
-    public List<string> RoleNames { get; set; } = new();
+    public List<string> RoleIds { get; set; } = new();
 }
 
 /// <summary>
@@ -55,7 +55,7 @@ public class LoginResponseDto
     /// <summary>
     /// 用户角色列表
     /// </summary>
-    public List<string> Roles { get; set; } = new();
+    public IEnumerable<Guid> Roles { get; set; } = null!;
 }
 
 /// <summary>

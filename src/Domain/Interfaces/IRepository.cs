@@ -60,6 +60,11 @@ public interface IRepository<T> where T : BaseEntity
     Task HardDeleteAsync(T entity, CancellationToken ct = default);
 
     /// <summary>
+    /// 根据条件批量硬删除
+    /// </summary>
+    Task<int> DeleteManyAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
+
+    /// <summary>
     /// 分页查询
     /// </summary>
     Task<IReadOnlyList<T>> GetPagedAsync(
@@ -73,4 +78,9 @@ public interface IRepository<T> where T : BaseEntity
     /// 统计数量
     /// </summary>
     Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default);
+
+    /// <summary>
+    /// 开始事务
+    /// </summary>
+    Task<IDbTransaction> BeginTransactionAsync(CancellationToken ct = default);
 }

@@ -13,7 +13,6 @@ public class ApplicationDbContext : DbContext
         : base(options) { }
 
     public DbSet<User> Users => Set<User>();
-    public DbSet<Product> Products => Set<Product>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<Menu> Menus => Set<Menu>();
@@ -34,17 +33,6 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Phone).HasMaxLength(20);
             entity.Property(e => e.PasswordHash).IsRequired();
             entity.Property(e => e.DisplayName).HasMaxLength(100);
-            entity.HasQueryFilter(e => !e.IsDeleted);
-        });
-
-        // Product configuration
-        modelBuilder.Entity<Product>(entity =>
-        {
-            entity.ToTable("Products");
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.Description).HasMaxLength(1000);
-            entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
-            entity.Property(e => e.Category).HasMaxLength(100);
             entity.HasQueryFilter(e => !e.IsDeleted);
         });
 

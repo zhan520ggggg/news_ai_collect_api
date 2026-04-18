@@ -36,4 +36,10 @@ public interface IUserRepository : IRepository<User>
     /// 获取用户的所有角色名称
     /// </summary>
     Task<List<string>> GetUserRoleNamesAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>
+    /// 批量获取多个用户的角色名称
+    /// </summary>
+    Task<Dictionary<Guid, List<string>>> GetUserRolesMapAsync(
+        IEnumerable<Guid> userIds, CancellationToken ct = default);
 }

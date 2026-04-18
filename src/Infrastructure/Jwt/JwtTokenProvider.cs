@@ -20,7 +20,7 @@ public class JwtTokenProvider : IJwtTokenProvider
     }
 
     public (string token, DateTime expiresAt) GenerateToken(
-        Guid userId, string userName, IEnumerable<string> roles)
+        Guid userId, string userName, IEnumerable<Guid> roles)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
         var secret = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");
@@ -42,7 +42,7 @@ public class JwtTokenProvider : IJwtTokenProvider
 
         foreach (var role in roles)
         {
-            claims.Add(new Claim(ClaimTypes.Role, role));
+            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
         }
 
         var tokenDescriptor = new SecurityTokenDescriptor

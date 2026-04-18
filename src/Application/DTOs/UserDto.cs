@@ -11,9 +11,9 @@ public class CreateUserDto
     public string Password { get; set; } = string.Empty;
     public string? DisplayName { get; set; }
     /// <summary>
-    /// 角色名称列表（如：["User", "Admin"]）
+    /// 角色 ID 列表（如：["c16aecc9-f155-47da-92ff-2835d9d30c74"]）
     /// </summary>
-    public List<string> RoleNames { get; set; } = new();
+    public List<string> RoleIds { get; set; } = new();
 }
 
 /// <summary>
@@ -26,9 +26,9 @@ public class UpdateUserDto
     public string? Phone { get; set; }
     public string? DisplayName { get; set; }
     /// <summary>
-    /// 角色名称列表（如：["User", "Admin"]）
+    /// 角色 ID 列表（如：["c16aecc9-f155-47da-92ff-2835d9d30c74"]）
     /// </summary>
-    public List<string>? RoleNames { get; set; }
+    public List<string>? RoleIds { get; set; }
 }
 
 /// <summary>
@@ -44,5 +44,5 @@ public class UserResponseDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    public List<string> Roles { get; set; } = new();
+    public List<string>? Roles { get; set; } = new();
 }

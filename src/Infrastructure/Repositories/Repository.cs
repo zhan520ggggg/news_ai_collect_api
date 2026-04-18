@@ -49,7 +49,8 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     public virtual async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
     {
         await _dbSet.AddRangeAsync(entities, ct);
-        await _context.SaveChangesAsync(ct);
+        int count=await _context.SaveChangesAsync(ct);
+        Console.WriteLine($"新增成功数量{count}");
     }
 
     public virtual async Task UpdateAsync(T entity, CancellationToken ct = default)
@@ -70,6 +71,16 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     {
         _dbSet.Remove(entity);
         await _context.SaveChangesAsync(ct);
+    }
+
+    public virtual async Task<int> DeleteManyAsync(
+        Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+    {
+        var entities = await _dbSet.IgnoreQueryFilters()
+            .Where(predicate)
+            .ToListAsync(ct);
+        _dbSet.RemoveRange(entities);
+        return await _context.SaveChangesAsync(ct);
     }
 
     public virtual async Task<IReadOnlyList<T>> GetPagedAsync(
@@ -98,4 +109,10 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         predicate == null
             ? await _dbSet.CountAsync(ct)
             : await _dbSet.CountAsync(predicate, ct);
+
+    public virtual async Task<IDbTransaction> BeginTransactionAsync(CancellationToken ct = default)
+    {
+        var transaction = await _context.Database.BeginTransactionAsync(ct);
+        return new DbTransaction(transaction);
+    }
 }

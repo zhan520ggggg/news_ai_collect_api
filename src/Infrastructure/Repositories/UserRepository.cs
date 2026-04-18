@@ -35,4 +35,18 @@ public class UserRepository : Repository<User>, IUserRepository
             .Where(u => u.Id == userId)
             .SelectMany(u => u.UserRoles.Select(ur => ur.Role.Name))
             .ToListAsync(ct);
+
+    public async Task<Dictionary<Guid, List<string>>> GetUserRolesMapAsync(
+        IEnumerable<Guid> userIds, CancellationToken ct = default)
+    {
+        var userIdSet = userIds.ToHashSet();
+
+       var roleMap = await _context.UserRoles
+            .Where(ur => userIdSet.Contains(ur.UserId))
+            .GroupBy(ur => ur.UserId)
+            .Select(g => new { UserId = g.Key, Roles = g.Select(ur => ur.Role.DisplayName).ToList() })
+            .ToDictionaryAsync(g => g.UserId, g => g.Roles, ct);
+
+        return roleMap;
+    }
 }

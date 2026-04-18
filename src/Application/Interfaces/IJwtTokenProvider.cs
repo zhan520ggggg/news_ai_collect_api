@@ -12,5 +12,5 @@ public interface IJwtTokenProvider
     /// <param name="userName">用户名</param>
     /// <param name="roles">角色列表</param>
     /// <returns>(Token, 过期时间)</returns>
-    (string token, DateTime expiresAt) GenerateToken(Guid userId, string userName, IEnumerable<string> roles);
+    (string token, DateTime expiresAt) GenerateToken(Guid userId, string userName, IEnumerable<Guid> roles);
 }

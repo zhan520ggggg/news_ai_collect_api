@@ -69,26 +69,37 @@ public class RoleService : IRoleService
         if (dto.MenuIds.Any())
         {
             var allMenus = await _menuRepository.GetAllAsync(ct);
-            var foundIds = allMenus.Where(m => dto.MenuIds.Contains(m.Id)).Select(m => m.Id).ToHashSet();
-            var missingIds = dto.MenuIds.Where(id => !foundIds.Contains(id)).ToList();
+            var existingMenuIds = allMenus.Select(m => m.Id).ToHashSet();
+            var missingIds = dto.MenuIds.Where(id => !existingMenuIds.Contains(id)).ToList();
             if (missingIds.Any())
                 throw new BusinessException(404, $"以下菜单 Id 不存在: {string.Join(", ", missingIds)}");
         }
 
-        // 删除旧关联
-        var existing = await _roleMenuRepository.FindAsync(rm => rm.RoleId == roleId, ct);
-        foreach (var rm in existing)
-            await _roleMenuRepository.DeleteAsync(rm, ct);
-
-        // 添加新关联
-        foreach (var menuId in dto.MenuIds)
+        // 删除旧关联并添加新关联
+        await using var transaction = await _roleMenuRepository.BeginTransactionAsync(ct);
+        try
         {
-            var roleMenu = new RoleMenu
+            await _roleMenuRepository.DeleteManyAsync(rm => rm.RoleId == roleId, ct);
+
+            if (dto.MenuIds.Any())
             {
-                RoleId = roleId,
-                MenuId = menuId
-            };
-            await _roleMenuRepository.AddAsync(roleMenu, ct);
+                var roleMenus = dto.MenuIds
+                    .Select(menuId => new RoleMenu
+                    {
+                        RoleId = roleId,
+                        MenuId = menuId
+                    })
+                    .ToList();
+
+                await _roleMenuRepository.AddRangeAsync(roleMenus, ct);
+            }
+
+            await transaction.CommitAsync(ct);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct);
+            throw;
         }
 
         return new RoleMenuResponseDto
