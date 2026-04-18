@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<Menu> Menus => Set<Menu>();
     public DbSet<RoleMenu> RoleMenus => Set<RoleMenu>();
+    public DbSet<DataCollection> DataCollections => Set<DataCollection>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -99,6 +100,15 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(e => e.MenuId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        // DataCollection configuration
+        modelBuilder.Entity<DataCollection>(entity =>
+        {
+            entity.ToTable("DataCollections");
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Content).IsRequired();
             entity.HasQueryFilter(e => !e.IsDeleted);
         });
     }
