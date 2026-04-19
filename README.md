@@ -94,6 +94,24 @@ Infrastructure（实现）= 厨房
 
 ---
 
+## 形象的比喻
+WebApi（前台） ← Common（点菜台）
+  ↓ 依赖
+Application（服务员） ← Common（餐具）
+  ↓ 依赖
+Domain（菜谱） ← Common（餐具） 
+  ↑ 实现
+Infrastructure（厨房） ← Common（餐具）
+## 第三方依赖
+Application（临时工，电工，水工） ← Common（餐具）
+  ↑ 实现
+Infrastructure（劳务中心） ← Common（餐具）
+
+服务员（Application）不能指挥前台（WebApi）  ：实现业务接口
+菜谱（Domain）不依赖任何人  ：Domain 层应该"零外部依赖"，也不定义第三方技术，专注业务领域，就像菜谱不需要关心水管坏了，验钞机，点菜机坏了 谁先修
+厨房（Infrastructure）按菜谱（Domain） ：做菜，实现所有外部接口（数据库，第三方）
+餐具（Common）大家都可以用
+
 ## 架构特性
 
 | 特性 | 实现方式 |
