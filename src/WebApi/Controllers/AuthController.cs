@@ -31,6 +31,7 @@ public class AuthController : ControllerBase
     /// <response code="200">登录成功</response>
     /// <response code="401">用户名或密码错误</response>
     [HttpPost("login")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), 200)]
     [ProducesResponseType(401)]
     public async Task<IActionResult> Login(
@@ -49,6 +50,7 @@ public class AuthController : ControllerBase
     /// <response code="200">注册成功</response>
     /// <response code="409">用户名或邮箱已存在</response>
     [HttpPost("register")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<UserResponseDto>), 200)]
     [ProducesResponseType(409)]
     public async Task<IActionResult> Register(

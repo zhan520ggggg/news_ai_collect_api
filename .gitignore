@@ -41,3 +41,5 @@ logs/
 coverage/
 *.coverage
 *.coveragexml
+
+publish/

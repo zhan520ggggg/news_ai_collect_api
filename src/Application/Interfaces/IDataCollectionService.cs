@@ -9,9 +9,14 @@ namespace Application.Interfaces;
 public interface IDataCollectionService
 {
     /// <summary>
-    /// 创建采集数据
+    /// 创建采集数据（单个）
     /// </summary>
     Task<DataCollectionResponseDto> CreateAsync(CreateDataCollectionDto dto, CancellationToken ct = default);
+
+    /// <summary>
+    /// 批量创建采集数据（快速返回，后台处理）
+    /// </summary>
+    Task<int> CreateBatchAsync(IEnumerable<CreateDataCollectionDto> dtos, CancellationToken ct = default);
 
     /// <summary>
     /// 分页获取采集数据

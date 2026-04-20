@@ -11,18 +11,15 @@ using WebApi.Middleware;
 using Infrastructure.Data;
 using Infrastructure.Extensions;
 
+var builder = WebApplication.CreateBuilder(args);
+
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(new ConfigurationBuilder()
-        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true)
-        .Build())
+    .ReadFrom.Configuration(builder.Configuration)
     .CreateLogger();
 
 try
 {
     Log.Information("Starting Clean Architecture API");
-
-    var builder = WebApplication.CreateBuilder(args);
 
     // 配置 Serilog
     builder.Host.UseSerilog();

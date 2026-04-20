@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Application.Interfaces;
 using Application.DTOs;
@@ -10,6 +11,7 @@ namespace WebApi.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class DataCollectionsController : ControllerBase
 {
     private readonly IDataCollectionService _dataService;
@@ -24,21 +26,21 @@ public class DataCollectionsController : ControllerBase
     }
 
     /// <summary>
-    /// 创建采集数据
+    /// 批量创建采集数据（第三方调用，无需鉴权）
     /// </summary>
-    /// <param name="dto">采集数据信息，包含标题、时间和内容</param>
+    /// <param name="dtos">采集数据数组，每项包含标题、时间和内容</param>
     /// <param name="ct">取消令牌</param>
-    /// <returns>创建的采集数据信息</returns>
-    /// <response code="200">创建成功</response>
+    /// <returns>接收的数据条数</returns>
+    /// <response code="200">接收成功</response>
     [HttpPost]
-    [ProducesResponseType(typeof(DataCollectionResponseDto), 200)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(int), 200)]
     public async Task<IActionResult> Create(
-        [FromBody] CreateDataCollectionDto dto,
+        [FromBody] List<CreateDataCollectionDto> dtos,
         CancellationToken ct)
     {
-        _logger.LogInformation("接收数据采集请求：Title={Title}", dto.Title);
-        var result = await _dataService.CreateAsync(dto, ct);
-        return Ok(result);
+        var count = await _dataService.CreateBatchAsync(dtos, ct);
+        return Ok(new { count });
     }
 
     /// <summary>

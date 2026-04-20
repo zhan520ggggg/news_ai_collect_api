@@ -61,15 +61,12 @@ public static class SwaggerConfig
 
     public static WebApplication UseCustomSwagger(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
         {
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Clean Architecture API v1");
-                options.RoutePrefix = string.Empty; // 将 Swagger UI 设置为默认首页
-            });
-        }
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "Clean Architecture API v1");
+            options.RoutePrefix = string.Empty; // 将 Swagger UI 设置为默认首页
+        });
 
         return app;
     }
